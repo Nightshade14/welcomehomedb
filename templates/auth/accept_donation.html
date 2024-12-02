@@ -98,6 +98,7 @@
 </form>
 {% endif %}
 
+{% if step == 2 %}
 <script>
     const validLocations = {{ locations|tojson|safe }};
 
@@ -214,6 +215,6 @@
     // Initialize Room and Shelf dropdowns for Piece 1 on page load
     document.addEventListener("DOMContentLoaded", initializeRoomAndShelf);
 </script>
-
+{% endif %}
 
 {% endblock %}
