@@ -1,0 +1,17 @@
+[project]
+name = "welcomehomedb"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1.7",
+    "flask-login>=0.6.3",
+    "flask[standard]>=3.1.0",
+    "mysql-connector>=2.2.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.1",
+]
