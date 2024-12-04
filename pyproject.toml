@@ -6,9 +6,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.1.7",
+    "flask>=3.1.0",
     "flask-login>=0.6.3",
-    "flask[standard]>=3.1.0",
-    "mysql-connector>=2.2.9",
+    "mysql-connector-python>=9.1.0",
 ]
 
 [project.optional-dependencies]

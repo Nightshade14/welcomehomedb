@@ -33,6 +33,7 @@ INSERT INTO
     Item (
         iDescription,
         color,
+        photo,
         isNew,
         hasPieces,
         material,
@@ -43,6 +44,7 @@ VALUES
     (
         'Office Chair with wheels',
         'Black',
+        LOAD_FILE('/var/lib/mysql-files/chair.jpg'),
         TRUE,
         FALSE,
         'Plastic and Fabric',
@@ -52,6 +54,7 @@ VALUES
     (
         'Dining Table with 4 legs',
         'Brown',
+        LOAD_FILE('/var/lib/mysql-files/table.jpg'),
         TRUE,
         TRUE,
         'Wood',
@@ -61,6 +64,7 @@ VALUES
     (
         'HP EliteBook Laptop',
         'Silver',
+        LOAD_FILE('/var/lib/mysql-files/laptop.jpg'),
         TRUE,
         FALSE,
         'Metal and Plastic',
@@ -68,8 +72,9 @@ VALUES
         'Laptop'
     ),
     (
-        'Men\'s Cotton Shirt',
+        "Men's Cotton Shirt",
         'Blue',
+        LOAD_FILE('/var/lib/mysql-files/shirt.jpg'),
         TRUE,
         FALSE,
         'Cotton',
@@ -78,7 +83,8 @@ VALUES
     ),
     (
         'Mystery Novel: The Lost Symbol',
-        'N/A',
+        "N/A",
+        LOAD_FILE('/var/lib/mysql-files/book.jpg'),
         FALSE,
         FALSE,
         'Paper',

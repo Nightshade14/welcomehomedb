@@ -2,17 +2,21 @@ import mysql.connector
 from flask import (
     Blueprint,
     flash,
-    g,
     redirect,
     render_template,
     request,
     url_for,
-    current_app,
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    logout_user,
+    current_user,
+    login_required,
+)
 from .db import get_db
-from flask_login import LoginManager, UserMixin
-from flask_login import login_user, logout_user, current_user, login_required
 
 
 # Define your User class that extends UserMixin
@@ -24,8 +28,6 @@ class User(UserMixin):
 
 def create_auth_blueprint(login_manager: LoginManager):
     bp = Blueprint("auth", __name__, url_prefix="/auth")
-
-    # login_manager.init_app(current_app)
 
     @login_manager.user_loader
     def load_user(user_id):
