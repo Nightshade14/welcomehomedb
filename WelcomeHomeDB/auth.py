@@ -32,8 +32,8 @@ def create_auth_blueprint(login_manager: LoginManager):
     @login_manager.user_loader
     def load_user(user_id):
         db = get_db()
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM Person WHERE userName = %s", (user_id,))
+        cursor = db.cursor(prepared=True)
+        cursor.execute("SELECT * FROM Person WHERE userName = ?", (user_id,))
         columns = [column[0] for column in cursor.description]
         res = cursor.fetchone()
         if res is None:
@@ -48,7 +48,7 @@ def create_auth_blueprint(login_manager: LoginManager):
     def register():
         db = get_db()
         # Retrieve all roles from Role Table
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(prepared=True, dictionary=True)
         cursor.execute("SELECT roleID FROM Role")
         roles = cursor.fetchall()
         print(roles)
@@ -62,9 +62,10 @@ def create_auth_blueprint(login_manager: LoginManager):
             phones = request.form.getlist("phones[]")  # Get all phone numbers as a list
 
             error = None
-            cursor = db.cursor()
-            cursor.execute("SELECT 1 FROM Person WHERE userName = %s", (username,))
+            cursor = db.cursor(prepared=True)
+            cursor.execute("SELECT 1 FROM Person WHERE userName = ?", (username,))
             existing_user = cursor.fetchone()
+
             if not username:
                 error = "Username is required."
             elif not password:
@@ -84,7 +85,7 @@ def create_auth_blueprint(login_manager: LoginManager):
                     # Insert into the Person table
                     cursor.execute(
                         "INSERT INTO Person (userName, pwd, fname, lname, email) "
-                        "VALUES (%s, %s, %s, %s, %s)",
+                        "VALUES (?, ?, ?, ?, ?)",
                         (
                             username,
                             generate_password_hash(password),
@@ -95,13 +96,13 @@ def create_auth_blueprint(login_manager: LoginManager):
                     )
                     # Insert into Act table for the role
                     cursor.execute(
-                        "INSERT INTO Act (userName, roleID) " "VALUES (%s, %s)",
+                        "INSERT INTO Act (userName, roleID) " "VALUES (?, ?)",
                         (username, role),
                     )
                     # Insert all phone numbers into PersonPhone table
                     for phone in phones:
                         cursor.execute(
-                            "INSERT INTO PersonPhone (userName, phone) VALUES (%s, %s)",
+                            "INSERT INTO PersonPhone (userName, phone) VALUES (?, ?)",
                             (username, phone),
                         )
 
@@ -124,9 +125,9 @@ def create_auth_blueprint(login_manager: LoginManager):
             username = request.form["username"]
             password = request.form["password"]
             db = get_db()
-            cursor = db.cursor()
+            cursor = db.cursor(prepared=True)
             error = None
-            cursor.execute("SELECT * FROM Person WHERE userName = %s", (username,))
+            cursor.execute("SELECT * FROM Person WHERE userName = ?", (username,))
             columns = [column[0] for column in cursor.description]
             print(columns)
             user = cursor.fetchone()
@@ -158,11 +159,11 @@ def create_auth_blueprint(login_manager: LoginManager):
 
             # Retrieve the user's roles
             db = get_db()
-            cursor = db.cursor(dictionary=True)
+            cursor = db.cursor(prepared=True, dictionary=True)
 
             # Check the roles of the current user
             cursor.execute(
-                "SELECT roleID FROM Act WHERE userName = %s", (current_user.id,)
+                "SELECT roleID FROM Act WHERE userName = ?", (current_user.id,)
             )
             roles = [row["roleID"] for row in cursor.fetchall()]
             return render_template(
@@ -179,7 +180,7 @@ def create_auth_blueprint(login_manager: LoginManager):
     def find_item():
         item_id = request.form["itemID"]  # Get the itemID from the form
         db = get_db()
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(prepared=True, dictionary=True)
 
         # Query to find all locations of pieces for the given itemID
         cursor.execute(
@@ -196,13 +197,13 @@ def create_auth_blueprint(login_manager: LoginManager):
             ON 
                 P.roomNum = L.roomNum AND P.shelfNum = L.shelfNum
             WHERE 
-                P.ItemID = %s
+                P.ItemID = ?;
             """,
             (item_id,),
         )
         locations = cursor.fetchall()  # Fetch all matching locations
         # Retrieve the user's roles
-        cursor.execute("SELECT roleID FROM Act WHERE userName = %s", (current_user.id,))
+        cursor.execute("SELECT roleID FROM Act WHERE userName = ?", (current_user.id,))
         roles = [row["roleID"] for row in cursor.fetchall()]
         # Pass the locations to the index.html template
         return render_template(
@@ -215,7 +216,7 @@ def create_auth_blueprint(login_manager: LoginManager):
     def find_order_items():
         order_id = request.form["orderID"]  # Get the orderID from the form
         db = get_db()
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(prepared=True, dictionary=True)
         # Query to find all items and their locations for the given orderID
         cursor.execute(  # Should we get the name of the item as well to display better (just another join)
             """
@@ -234,7 +235,7 @@ def create_auth_blueprint(login_manager: LoginManager):
             JOIN 
                 Location L ON P.roomNum = L.roomNum AND P.shelfNum = L.shelfNum
             WHERE 
-                II.orderID = %s
+                II.orderID = ?;
             """,
             (order_id,),
         )
@@ -257,7 +258,7 @@ def create_auth_blueprint(login_manager: LoginManager):
                 }
             )
         # Retrieve the user's roles
-        cursor.execute("SELECT roleID FROM Act WHERE userName = %s", (current_user.id,))
+        cursor.execute("SELECT roleID FROM Act WHERE userName = ?", (current_user.id,))
         roles = [row["roleID"] for row in cursor.fetchall()]
         # Pass the results to the index.html template
         return render_template(
@@ -272,7 +273,7 @@ def create_auth_blueprint(login_manager: LoginManager):
     @login_required
     def accept_donation():
         db = get_db()
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(prepared=True, dictionary=True)
 
         # The button only appears if the user is a supervisor or a staff member.
         cursor.execute("SELECT roomNum, shelfNum FROM Location")
@@ -283,7 +284,7 @@ def create_auth_blueprint(login_manager: LoginManager):
 
             # Check if donorID is provided and valid
             if donor_id:
-                cursor.execute("SELECT 1 FROM Person WHERE userName = %s", (donor_id,))
+                cursor.execute("SELECT 1 FROM Person WHERE userName = ?", (donor_id,))
                 donor_exists = cursor.fetchone()
                 if not donor_exists:
                     flash("Invalid Donor ID. Please try again.", "error")
@@ -307,7 +308,7 @@ def create_auth_blueprint(login_manager: LoginManager):
                         cursor.execute(
                             """
                             INSERT INTO Item (iDescription, color, isNew, hasPieces, material, mainCategory, subCategory)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)
                             """,
                             (
                                 item_description,
@@ -336,7 +337,7 @@ def create_auth_blueprint(login_manager: LoginManager):
                                 cursor.execute(
                                     """
                                     INSERT INTO Piece (ItemID, pieceNum, pDescription, length, width, height, roomNum, shelfNum)
-                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                                     """,
                                     (
                                         item_id,
@@ -354,7 +355,7 @@ def create_auth_blueprint(login_manager: LoginManager):
                             cursor.execute(
                                 """
                                 INSERT INTO Piece (ItemID, pieceNum, pDescription, length, width, height, roomNum, shelfNum)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                                 """,
                                 (
                                     item_id,
@@ -372,7 +373,7 @@ def create_auth_blueprint(login_manager: LoginManager):
                         cursor.execute(
                             """
                             INSERT INTO DonatedBy (ItemID, userName, donateDate)
-                            VALUES (%s, %s, CURDATE())
+                            VALUES (?, ?, CURDATE())
                             """,
                             (item_id, donor_id),
                         )

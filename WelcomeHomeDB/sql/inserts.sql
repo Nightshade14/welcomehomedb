@@ -44,7 +44,7 @@ VALUES
     (
         'Office Chair with wheels',
         'Black',
-        LOAD_FILE('/var/lib/mysql-files/chair.jpg'),
+        LOAD_FILE("/var/lib/mysql-files/chair.jpg"),
         TRUE,
         FALSE,
         'Plastic and Fabric',
